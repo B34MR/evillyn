@@ -16,10 +16,10 @@ class HelpFormatter(argparse.HelpFormatter):
 # Custom help menu.
 custom_usage = f"""
   
-Evil-lyn
+Evil-Lyn
 {'-'*100}\n
 Usage Examples: 
-  python evillyn.py -i wlan0 -e 'Contoso' -m AA:AA:AA:FF:FF:FF -c 4 --ou 'Contoso, Ltd.' --band b eviltwin
+  python evillyn.py -i wlan0 -e 'Contoso' -m AA:AA:AA:FF:FF:FF -c 4 --company 'Contoso, Ltd.' --band b
   
 """
 
@@ -60,11 +60,12 @@ openssl_group.add_argument('--email', dest='openssl_email', type=str, default='i
 
 # Global Options.
 group1 = parser.add_argument_group('Global Arguments')
-group1.add_argument('--loglevel', dest='loglevel', type=str.upper, default='INFO', choices=['DEBUG', 'INFO', 'WARNING'], metavar='{debug, info, warning}', help='Set logging level [WARNING]')
-group1.add_argument('--nographic', dest='nographic', action='store_true', default='nographic', help='Set Graphic Mode [NO-GRAPHIC]')
-group1.add_argument('--runtime', type=int, dest='runtime', default=float("inf"), help='Set Runtime duration in seconds')
-group1.add_argument('--rounds', type=int, dest='rounds', default=1, help='Set the number of Rounds/Iterations')
-group1.add_argument('--sleep', type=int, dest='sleep', default=120, help='Set the amount of Sleep in seconds between each round')
+group1.add_argument('--database', dest='database',  type=str, default='.evillyn.db', help='Specifty database filepath [.evillyn.db]')
+group1.add_argument('--debug', dest='loglevel', action='store_true', help='Set logging level [DEBUG]')
+group1.add_argument('--droptables', dest='droptables', action='store_true', help='Drop all database tables')
+group1.add_argument('--minimal', dest='minimal', action='store_true', help='Disable DBmanager and Prettify mode')
+group1.add_argument('--runtime', dest='runtime', type=int, default=float("inf"), help='Set Runtime duration in seconds')
+
 
 # Print 'help' if no options are defined.
 if len(sys.argv) == 1 \

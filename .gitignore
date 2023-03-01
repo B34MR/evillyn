@@ -1,6 +1,9 @@
 # App Specific
 configs/
 results/
+test/
+.evillyn.db
+evillyn.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
