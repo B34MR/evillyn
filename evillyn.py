@@ -150,7 +150,7 @@ async def write_results(file_ext, directory, dbquery):
 			# Check for new entries in the db.
 			if new_db_set_length > db_set_length:
 				if not minimal:
-					r.console.print(f'Results file updated: [repr.path]{filepath}')
+					r.console.print(f' Results file updated: [repr.path]{filepath}')
 				else:
 					print(f'[*] Results file updated: {filepath}')
 				# Write file with sorted and unique results. 
@@ -209,11 +209,13 @@ async def stream_reader(pid, stream, returncode):
 
 	prettyprint = True
 	print(f'[*] Hostapd PID: {pid}')
-	
+
 	while True:
 		line = await stream.readline()
 		line_decoded = line.decode('UTF-8').rstrip()
-		# print(f'{line_decoded}')
+		# DEV - ' 1==2' is a temp placeholder, create arg.
+		if 1 == 2:
+			print(f'{line_decoded}')
 		if line_decoded:
 			if prettyprint:
 				ts = '{:%m-%d %H:%M:%S}'.format(datetime.now())
@@ -226,16 +228,16 @@ async def stream_reader(pid, stream, returncode):
 					print(f'[*] Hostapd BSSID: {line_decoded_lst[5]}')
 					print(f'[*] Hostapd ESSID: {line_decoded_lst[8]}\n')
 				elif 'AP-ENABLED' in line_decoded:
-					print(f'{line_decoded}')
+					print(f'{c.GREEN}[*]{c.END} {line_decoded}')
 				elif 'AP-DISABLED' in line_decoded:
-					print(f'{line_decoded}')
+					print(f'{c.RED}[*]{c.END} {line_decoded}')
 				elif 'INTERFACE-DISABLED' in line_decoded:
-					print(f'{line_decoded}')
+					print(f'{c.RED}[*]{c.END} {line_decoded}')
 				elif 'INTERFACE-ENABLED' in line_decoded:
-					print(f'{line_decoded}')
+					print(f'{c.GREEN}[*]{c.END} {line_decoded}')
 				elif 'Identity received from STA:' in line_decoded:
 					if not minimal:
-						r.console.print(f'{ts} [id][IDENTITY][/id] {line_decoded}')
+						r.console.print(f' {ts} [id][IDENTITY][/id] {line_decoded}')
 					else:
 						print(f'{ts} [IDENTITY] {line_decoded}')
 					# Read from parsed 'stream' and populate database.
@@ -252,7 +254,7 @@ async def stream_reader(pid, stream, returncode):
 					username = results[0]
 					hashcat = results[1]
 					if not minimal:
-						r.console.print(f'[ts]{ts}[/ts] [or][NETNTLM][/or] [gold3]{hashcat}')
+						r.console.print(f' [ts]{ts}[/ts] [or][NETNTLM][/or] [gold3]{hashcat}')
 					else:
 						print(f'{ts} [NETNTLM] {hashcat}')
 					db.insert_netntlm(username, hashcat, jtr)
@@ -294,13 +296,13 @@ async def hostapd_subprocess(cmd, conf, runtime):
 		# Asyncio - cancel pending Tasks.
 		for task in pending:
 			if task.cancel():
-				print(f'[*] Asyncio Task Canceled: "{task.get_name()}"')
+				print(f'[*] Task Canceled: "{task.get_name()}"')
 			# Required to cancel tasks successfullly, else. runtime error will occur.
 			time.sleep(.25)
 		# Asyncio - print completed Tasks.
 		for task in done:
-			print(f'[*] Asyncio Task Completed/Done: "{task.get_name()}"')
-			print(f'[*] Asyncio Task Result: "{task.result()}"')
+			print(f'[*] Task Completed/Done: "{task.get_name()}"')
+			print(f'[*] Task Result: "{task.result()}"')
 			# Required to cancel tasks successfullly, else. runtime error will occur.
 			time.sleep(.25)
 	except Exception as e:
@@ -501,8 +503,9 @@ def main():
 			print(f'[*] TX Power Command: {set_txpower_cmd}')
 			print(f'[*] TX Power Output:\n{set_txpower_stdout}')
 
-	# Hostapd-wpe - Create instance and launch.
+	# Hostapd - Create instance and launch.
 	try:
+		# Print to STDOUT.
 		if not minimal:
 			r.console.print(r.Panel(r.Syntax(
 			f"""\
@@ -511,11 +514,13 @@ def main():
 			\n Channel: {config_obj['Hostapd']['channel']}\
 			\n Certificate Name: {config_obj['OpenSSL']['company']}\
 			\n Band: {config_obj['Hostapd']['band']}\
+			\n Interface: {config_obj['Hostapd']['interface']}\
 			\n Runtime: {args.runtime}
 			""",
 			"notalanguage"),
 			title="EvilTwin Details", 
 			title_align="left"))
+		# Print to STDOUT.
 		else:
 			print('-'*100)
 			print(f'[*] ESSID: {config_obj["Hostapd"]["essid"]}')
@@ -523,15 +528,28 @@ def main():
 			print(f'[*] Channel: {config_obj["Hostapd"]["channel"]}')
 			print(f'[*] Certificate Name: {config_obj["OpenSSL"]["company"]}')
 			print(f'[*] Band: {config_obj["Hostapd"]["band"]}')
+			print(f'[*] Interface: {config_obj["Hostapd"]["interface"]}')
 			print(f'[*] Runtime: {args.runtime}')
+			print('-'*100)
+
+		# Hostapd - launch with spinner.
+		if not minimal:
+			with r.console.status(spinner='dots', status=f'Hostapd running...', spinner_style='or') as status:
+				# Timer - start
+				start = time.perf_counter()
+				asyncio.run(hostapd_subprocess('hostapd-wpe', hostapd_conf_fp, args.runtime))
+				# Timer - finish
+				end = time.perf_counter()
+				print(f'[*] Completed in: {round(end-start,0)} second(s).\n')
 		
-		# Timer - start
-		start = time.perf_counter()
-		asyncio.run(hostapd_subprocess('hostapd-wpe', hostapd_conf_fp, args.runtime))
-		
-		# Timer - finish
-		end = time.perf_counter()
-		print(f'[*] Completed in: {round(end-start,0)} second(s).\n')
+		# Hostapd - launch without spinner.
+		else:
+			# Timer - start
+			start = time.perf_counter()
+			asyncio.run(hostapd_subprocess('hostapd-wpe', hostapd_conf_fp, args.runtime))
+			# Timer - finish
+			end = time.perf_counter()
+			print(f'[*] Completed in: {round(end-start,0)} second(s).\n')
 	except KeyboardInterrupt:
 		print(f'\nQuit: detected [CTRL-C] ')
 		sys.exit(0)
