@@ -7,6 +7,7 @@ from utils import interface
 from utils import mkdir
 from utils import openssl
 from utils import sqlite as db
+from shutil import which
 from datetime import datetime
 from configparser import ConfigParser, ExtendedInterpolation
 import asyncio
@@ -26,9 +27,24 @@ except Exception as e:
 	print(f'[{c.BLUE}*{c.END}] To fix, try: "python3 -m pip install rich"')
 	richlib = False
 
-
 # Argparse - Init and parse.
 args = arguments.parser.parse_args()
+
+# Check Requirements - checks before creating files and dirs that might take time
+if which("hostapd-wpe") is None:
+	logging.error(f'hostapd-wpe - not installed!')
+	logging.error(f'Install by running sudo apt install hostapd-wpe')
+	sys.exit(1)
+
+if which("openssl") is None:
+	logging.error(f'openssl - not installed!')
+	logging.error(f'Install by running sudo apt install openssl')
+	sys.exit(1)
+
+if which("macchanger") is None:
+	logging.error(f'macchanger not installed!')
+	logging.error(f'Install by running sudo apt install macchanger')
+	sys.exit(1)
 
 # Argparse - minimal.
 minimal = False

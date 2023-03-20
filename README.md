@@ -11,10 +11,14 @@ Kali-Linux
 
 **Installation:**
 ```
-At this time standard installation only requires the Python3 'rich' library.
+At this time standard installation requires the Python3 'rich' library and other Linux binaries. 
 python3 -m pip install -r requirements.txt
 or
 python3 -m pip install rich
+
+sudo apt install hostapd-wpe
+sudo apt install openssl
+sudo apt install macchanger
 ```
 
 **Usage:**
