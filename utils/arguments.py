@@ -65,6 +65,7 @@ group1.add_argument('--debug', dest='loglevel', action='store_true', help='Set l
 group1.add_argument('--droptables', dest='droptables', action='store_true', help='Drop all database tables')
 group1.add_argument('--minimal', dest='minimal', action='store_true', help='Disable DBmanager and Prettify mode')
 group1.add_argument('--runtime', dest='runtime', type=int, default=float("inf"), help='Set Runtime duration in seconds')
+group1.add_argument('--nofilter', dest='nofilter', action='store_true', help='Display unfiltered/all Hostapd logs to stdout.')
 
 
 # Print 'help' if no options are defined.

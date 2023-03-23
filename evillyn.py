@@ -223,18 +223,20 @@ def stream_parser_hashcat(line):
 async def stream_reader(pid, stream, returncode):
 	'''  Read stream, parse and populate database.	'''
 
-	prettyprint = True
 	print(f'[*] Hostapd PID: {pid}')
 
 	while True:
 		line = await stream.readline()
 		line_decoded = line.decode('UTF-8').rstrip()
-		# DEV - ' 1==2' is a temp placeholder, create arg.
-		if 1 == 2:
-			print(f'{line_decoded}')
+
 		if line_decoded:
-			if prettyprint:
-				ts = '{:%m-%d %H:%M:%S}'.format(datetime.now())
+			ts = '{:%m-%d %H:%M:%S}'.format(datetime.now())
+			# Filter Off.
+			if args.nofilter:
+				print(f'{line_decoded}')
+			# Filter On - Hostapd config.
+			if not args.nofilter:
+				# Standard print.
 				if 'Configuration file:' in line_decoded:
 					line_decoded_lst = line_decoded.split(' ', 2)
 					print(f'[*] Hostapd Config: {line_decoded_lst[2]}')
@@ -251,31 +253,41 @@ async def stream_reader(pid, stream, returncode):
 					print(f'{c.RED}[*]{c.END} {line_decoded}')
 				elif 'INTERFACE-ENABLED' in line_decoded:
 					print(f'{c.GREEN}[*]{c.END} {line_decoded}')
-				elif 'Identity received from STA:' in line_decoded:
-					if not minimal:
-						r.console.print(f' {ts} [id][IDENTITY][/id] {line_decoded}')
-					else:
-						print(f'{ts} [IDENTITY] {line_decoded}')
-					# Read from parsed 'stream' and populate database.
-					identity, sta_macaddress = stream_parser_identity(line_decoded)
-					db.insert_identity(identity, sta_macaddress)
-				elif 'jtr NETNTLM:' in line_decoded:
-					results = stream_parser_jtr(line_decoded)
-					username = results[0]
-					jtr = results[1]
-					# print(f'{ts} [JTR] {jtr}')
-				elif 'hashcat NETNTLM:' in line_decoded:
-					# Read from parsed 'stream' and populate database.
-					results = stream_parser_hashcat(line_decoded)
-					username = results[0]
-					hashcat = results[1]
-					if not minimal:
-						r.console.print(f' [ts]{ts}[/ts] [or][NETNTLM][/or] [gold3]{hashcat}')
-					else:
-						print(f'{ts} [NETNTLM] {hashcat}')
-					db.insert_netntlm(username, hashcat, jtr)
-			else:
-				print(line_decoded)
+			# Filter On - Identity.
+			if 'Identity received from STA:' in line_decoded:
+				# PrettyPrint.
+				if not args.nofilter and not minimal:
+					r.console.print(f' {ts} [id][IDENTITY][/id] {line_decoded}')
+				# Standard print.
+				elif not args.nofilter and minimal:
+					print(f'{ts} [IDENTITY] {line_decoded}')
+				# Read from parsed 'stream' and populate database.
+				identity, sta_macaddress = stream_parser_identity(line_decoded)
+				db.insert_identity(identity, sta_macaddress)
+			# Filter On - jtr.
+			if 'jtr NETNTLM:' in line_decoded:
+				results = stream_parser_jtr(line_decoded)
+				username = results[0]
+				jtr = results[1]
+				# PrettyPrint.
+				# if not args.nofilter and not minimal:
+				# 	r.console.print(f' [ts]{ts}[/ts] [or][NETNTLM][/or] [gold3]{jtr}')
+				# # Standard print.
+				# if not args.nofilter and minimal:
+				# 	print(f'{ts} [JTR] {jtr}')
+			# Filter On - hashcat.
+			if 'hashcat NETNTLM:' in line_decoded:
+				# Read from parsed 'stream' and populate database.
+				results = stream_parser_hashcat(line_decoded)
+				username = results[0]
+				hashcat = results[1]
+				# PrettyPrint.
+				if not args.nofilter and not minimal:
+					r.console.print(f' [ts]{ts}[/ts] [or][NETNTLM][/or] [gold3]{hashcat}')
+				# Standard print.
+				elif not args.nofilter and minimal:
+					print(f'{ts} [NETNTLM] {hashcat}')
+				db.insert_netntlm(username, hashcat, jtr)
 		elif returncode is not None:
 			print(f'{returncode}')
 			break
