@@ -56,6 +56,7 @@ Global Arguments:
   --debug              Set logging level [DEBUG]
   --minimal            Disable DBmanager and Prettify mode
   --runtime RUNTIME    Set Runtime duration in seconds
+  --nofilter           Display unfiltered/all Hostapd logs to stdout
 ```
 
 **Database:**
