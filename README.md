@@ -130,3 +130,38 @@ SOLUTION:
   Configure NetworkManager to stop 'managing' your wireless interface. 
   nmcli device set wlan0 managed no
 ```
+
+```
+ISSUE:
+  wlan0: AP-DISABLED 
+  wlan0: AP-DISABLED
+Hostapd running...
+
+SOLUTION:
+  Avoid using Channels found in the Dynamic Fequency Selection (DFS).
+
+  DFS Channels: 
+  
+    U-NII-2
+    -------- 
+      52 
+      56 
+      60
+      64
+  
+    U-NII-2e
+    --------
+      100
+      104
+      108
+      112
+      116
+      120
+      124
+      128
+      132
+      136
+      140
+      144
+
+```
